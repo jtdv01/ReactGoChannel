@@ -1,5 +1,6 @@
 import React from 'react';
 import ChannelSection from './channels/ChannelSection.jsx';
+import UserSection from './users/UserSection.jsx';
 
 class App extends React.Component{
 
@@ -7,8 +8,11 @@ class App extends React.Component{
 		super(props);
 		this.state = {
 			channels: [],
-			activeChannel: {}
+			activeChannel: {},
+			currentUser: ''
 		};
+
+
 	}
 
 	addChannel(name){
@@ -23,6 +27,11 @@ class App extends React.Component{
 		// TODO get channels messeages
 	}
 
+    setUser(u){
+        // Sets user given a string u
+        this.setState({currentUser: u});
+	}
+
 	render(){
 		return(
 			<div className="app">
@@ -32,6 +41,14 @@ class App extends React.Component{
 						activeChannel={this.state.activeChannel}
 						addChannel = {this.addChannel.bind(this)}
 						setChannel = {this.setChannel.bind(this)} />
+					<UserSection 
+						currentUser ={this.state.currentUser}
+						setUser = {this.setUser.bind(this)}
+						/>
+				</div>
+
+				<div className="messages">
+
 				</div>
 			</div>
 
