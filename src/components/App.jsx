@@ -6,19 +6,19 @@ class App extends React.Component{
 	constructor(props){
 		super(props);
 		this.state = {
-			channels: [{name: "value"}]
+			channels: []
 		};
 	}
 
 	addChannel(name){
 		const {channels} = this.state;
-		// channels.push({id: channels.length, name});
-		// this.setState({channels});
+		channels.push({id: channels.length, name});
+		this.setState({channels});
 		// TODO;send
 	}
 
 	setChannel(activeChannel){
-		// this.setState({activeChannel});
+		this.setState({activeChannel});
 		// TODO get channels messeages
 	}
 
