@@ -2,13 +2,12 @@ import React from 'react';
 import ChannelSection from './channels/ChannelSection.jsx';
 import UserSection from './users/UserSection.jsx';
 import MessageSection from './messages/MessageSection.jsx';
-
+import Socket from '../socket';
 class App extends React.Component{
 
 	constructor(props){
 		super(props);
 		this.state = {
-			ws : new WebSocket("wss://echo.websocket.org"),
 			channels: [],
 			activeChannel: {},
 			currentUser: '',
@@ -21,26 +20,55 @@ class App extends React.Component{
 	}
 
     componentDidMount(){
-        let ws = this.state.ws;
-        ws.onmessage = this.message.bind(this);
-        ws.onopen = this.open.bind(this);
-        ws.onclose = this.close.bind(this);
+        // let ws = this.state.ws;
+		this.socket = new Socket('wss://echo.websocket.org');
+		let socket = this.socket;
+		socket.on('connect', this.onConnect.bind(this));
+		socket.on('disconnect', this.onDisconnectConnect.bind(this));
+		socket.on('channel add', this.onAddChannel.bind(this));
+		socket.on('user add', this.onAddUser.bind(this));
+		socket.on('user remove', this.onRemoveUser.bind(this));
+		socket.on('message add', this.onMessageAdd.bind(this));
     }
 
-    message(e){
-		const event = JSON.parse(e.data);
-		if(event.name === "channel add"){
-			this.newChannel(event.data);
-		}
-    }
+	onMessageAdd(message){
+		let { messages } = this.state;
+		messages.push(message);
+		this.setState({messsages});
+	}
 
-    open(){
+	onAddUser(user){
+		let { users } = this.state;
+		users.push(user);
+		this.setState({users});
+	}
+	
+	onRemoveUser(user){
+		let { users } = this.state;
+		users = users.filter(u => {
+			return user.id !== removeUser.id;
+		});
+		this.setState({users});
+	}
+
+	onEditUser(editUser){
+		let { users } = this.state;
+		users = users.map(u => {
+			if(editUser.id === user.id){
+				return editUser;
+			}
+			return user;
+		});
+		this.setState({users});
+	}
+
+	onConnect(){
 		this.setState({connected: true});
-    }
-
-    close(){
+	}
+	onDisconnect(){
 		this.setState({connected: false});
-    }
+	}
+
 	newChannel(channel){
 		let {channels} = this.state;
 		channels.push(channel);
@@ -48,16 +76,7 @@ class App extends React.Component{
 	}
 
 	addChannel(name){
-		const {channels} = this.state;
-		let msg = {
-			name: 'channel add',
-			data: {
-				id: channels.length,
-				name 
-			}
-		};
-
-		this.state.ws.send(JSON.stringify(msg));
+		this.socket.emit('channel add', { name });
 	}
 
 	setChannel(activeChannel){
@@ -65,21 +84,15 @@ class App extends React.Component{
 		// TODO get channels messeages
 	}
 
-    setUser(u){
-        // Sets user given a string u
-		let {users} = this.state;
-		users.push({id: users.length, name: u});
 
-		this.setState({users});
-        this.setState({currentUser: u});
+    setUser(name){
+		this.socket.emit('user edit', {name});
 	}
 
 	addMessage(body){
-		let {messages, users} = this.state;
-		let createdAt = new Date;
-		let author = users.length > 0 ? users[0].name : 'anon';
-		messages.push({id: messages.length, body, createdAt , author});
-		this.setState({messages});
+		let { activeChannel } =  this.state;
+		this.socket.emit('message add',
+			{channelId: activeChannel.id, body});
 	}
 	render(){
 		return(
