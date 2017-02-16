@@ -9823,22 +9823,64 @@ var App = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(App.prototype), 'constructor', this).call(this, props);
 		this.state = {
+			ws: new WebSocket("wss://echo.websocket.org"),
 			channels: [],
 			activeChannel: {},
 			currentUser: '',
 			users: [],
-			messages: []
+			messages: [],
+			connected: false
 		};
 	}
 
 	_createClass(App, [{
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			var ws = this.state.ws;
+			ws.onmessage = this.message.bind(this);
+			ws.onopen = this.open.bind(this);
+			ws.onclose = this.close.bind(this);
+		}
+	}, {
+		key: 'message',
+		value: function message(e) {
+			var event = JSON.parse(e.data);
+			if (event.name === "channel add") {
+				this.newChannel(event.data);
+			}
+		}
+	}, {
+		key: 'open',
+		value: function open() {
+			this.setState({ connected: true });
+		}
+	}, {
+		key: 'close',
+		value: function close() {
+			this.setState({ connected: false });
+		}
+	}, {
+		key: 'newChannel',
+		value: function newChannel(channel) {
+			var channels = this.state.channels;
+
+			channels.push(channel);
+			this.setState({ channels: channels });
+		}
+	}, {
 		key: 'addChannel',
 		value: function addChannel(name) {
 			var channels = this.state.channels;
 
-			channels.push({ id: channels.length, name: name });
-			this.setState({ channels: channels });
-			// TODO;send
+			var msg = {
+				name: 'channel add',
+				data: {
+					id: channels.length,
+					name: name
+				}
+			};
+
+			this.state.ws.send(JSON.stringify(msg));
 		}
 	}, {
 		key: 'setChannel',
