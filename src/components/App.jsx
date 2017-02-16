@@ -8,21 +8,56 @@ class App extends React.Component{
 	constructor(props){
 		super(props);
 		this.state = {
+			ws : new WebSocket("wss://echo.websocket.org"),
 			channels: [],
 			activeChannel: {},
 			currentUser: '',
 			users:[],
-			messages: []
+			messages: [],
+			connected: false
 		};
 
 
 	}
 
+    componentDidMount(){
+        let ws = this.state.ws;
+        ws.onmessage = this.message.bind(this);
+        ws.onopen = this.open.bind(this);
+        ws.onclose = this.close.bind(this);
+    }
+
+    message(e){
+		const event = JSON.parse(e.data);
+		if(event.name === "channel add"){
+			this.newChannel(event.data);
+		}
+    }
+
+    open(){
+		this.setState({connected: true});
+    }
+
+    close(){
+		this.setState({connected: false});
+    }
+	newChannel(channel){
+		let {channels} = this.state;
+		channels.push(channel);
+		this.setState({channels});
+	}
+
 	addChannel(name){
 		const {channels} = this.state;
-		channels.push({id: channels.length, name});
-		this.setState({channels});
-		// TODO;send
+		let msg = {
+			name: 'channel add',
+			data: {
+				id: channels.length,
+				name 
+			}
+		};
+
+		this.state.ws.send(JSON.stringify(msg));
 	}
 
 	setChannel(activeChannel){
