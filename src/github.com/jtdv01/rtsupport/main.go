@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"net/http"
+	"github.com/gorilla/websocket"
 )
 
+// Websockets allow connections to any host
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -13,7 +14,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	// fmt.Println("Go!")
+	fmt.Println("Go!")
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":4000", nil)
 }
